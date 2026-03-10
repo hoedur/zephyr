@@ -259,6 +259,24 @@ static int cmd_lora_send(const struct shell *sh,
 	return 0;
 }
 
+static void lora_recv_async_cb(const struct device *dev, uint8_t *data, uint16_t size,
+			       int16_t rssi, int8_t snr, void *user_data)
+{
+	const struct shell *sh = user_data;
+
+	if (!sh) {
+		return;
+	}
+
+	shell_print(sh, "Received %" PRIu16 " bytes", size);
+
+	if (size > 0 && data != NULL) {
+		shell_hexdump(sh, data, size);
+	}
+
+	shell_print(sh, "RSSI: %" PRIi16 " dBm, SNR:%" PRIi8 " dBm", rssi, snr);
+}
+
 static int cmd_lora_recv(const struct shell *sh, size_t argc, char **argv)
 {
 	static char buf[0xff];
@@ -269,14 +287,41 @@ static int cmd_lora_recv(const struct shell *sh, size_t argc, char **argv)
 	int8_t snr;
 
 	modem_config.tx = false;
+
+	if (argc >= 2 && strcmp(argv[1], "stop") == 0) {
+		dev = get_modem(sh);
+		if (!dev) {
+			return -ENODEV;
+		}
+		ret = lora_recv_async(dev, NULL, NULL);
+		if (ret < 0) {
+			shell_error(sh, "LoRa async recv stop failed: %i", ret);
+			return ret;
+		}
+		shell_print(sh, "LoRa continuous reception stopped");
+		return 0;
+	}
+
 	dev = get_configured_modem(sh);
 	if (!dev) {
 		return -ENODEV;
 	}
 
-	if (argc >= 2 && parse_long_range(&timeout, sh, argv[1],
-					  "timeout", 0, INT_MAX) < 0) {
-		return -EINVAL;
+	if (argc >= 2) {
+		if (strcmp(argv[1], "continuous") == 0) {
+			ret = lora_recv_async(dev, lora_recv_async_cb, (void *)sh);
+			if (ret < 0) {
+				shell_error(sh, "LoRa async recv failed: %i", ret);
+				return ret;
+			}
+			shell_print(sh, "LoRa continuous reception started");
+			return 0;
+		}
+
+		if (parse_long_range(&timeout, sh, argv[1],
+				     "timeout", 0, INT_MAX) < 0) {
+			return -EINVAL;
+		}
 	}
 
 	ret = lora_recv(dev, buf, sizeof(buf),
@@ -286,6 +331,7 @@ static int cmd_lora_recv(const struct shell *sh, size_t argc, char **argv)
 		return ret;
 	}
 
+	shell_print(sh, "Received %d bytes", ret);
 	shell_hexdump(sh, buf, ret);
 	shell_print(sh, "RSSI: %" PRIi16 " dBm, SNR:%" PRIi8 " dBm",
 		    rssi, snr);
@@ -333,7 +379,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_lora,
 		      SHELL_HELP("Send a LoRa packet", "<data>"),
 		      cmd_lora_send, 2, 0),
 	SHELL_CMD_ARG(recv, NULL,
-		      SHELL_HELP("Receive a LoRa packet", "[timeout (ms)]"),
+		      SHELL_HELP("Receive a LoRa packet", "[timeout (ms)] | continuous | stop"),
 		      cmd_lora_recv, 1, 1),
 	SHELL_CMD_ARG(test_cw, NULL,
 		      SHELL_HELP("Send a continuous wave",
