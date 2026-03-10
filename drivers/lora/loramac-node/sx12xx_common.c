@@ -412,6 +412,13 @@ int sx12xx_lora_config(const struct device *dev,
 	}
 
 	if (config->use_custom_sync_word) {
+		if (config->sync_word > 0xFF &&
+		    (DT_HAS_COMPAT_STATUS_OKAY(semtech_sx1272) ||
+		     DT_HAS_COMPAT_STATUS_OKAY(semtech_sx1276))) {
+			LOG_WRN("SX127x only supports 8-bit sync words. "
+				"Truncating 0x%04x to 0x%02x",
+				config->sync_word, (uint8_t)config->sync_word);
+		}
 		Radio.SetSyncWord(config->sync_word);
 	} else {
 		Radio.SetPublicNetwork(config->public_network);
