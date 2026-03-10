@@ -93,8 +93,10 @@ int lbm_lora_config(const struct device *dev, struct lora_modem_config *lora_con
 		},
 		.rf_freq_in_hz = lora_config->frequency,
 		.output_pwr_in_dbm = lora_config->tx_power,
-		.sync_word = lora_config->public_network ? LBM_LORA_SYNC_WORD_PUBLIC
-							 : LBM_LORA_SYNC_WORD_PRIVATE,
+		.sync_word = lora_config->use_custom_sync_word ?
+			     (uint8_t)(lora_config->sync_word >> 8) :
+			     (lora_config->public_network ? LBM_LORA_SYNC_WORD_PUBLIC
+							 : LBM_LORA_SYNC_WORD_PRIVATE),
 	};
 	ral_status_t status;
 	int ret;

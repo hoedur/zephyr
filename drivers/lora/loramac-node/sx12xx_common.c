@@ -411,7 +411,11 @@ int sx12xx_lora_config(const struct device *dev,
 				  crc, false, 0, config->iq_inverted, true);
 	}
 
-	Radio.SetPublicNetwork(config->public_network);
+	if (config->use_custom_sync_word) {
+		Radio.SetSyncWord(config->sync_word);
+	} else {
+		Radio.SetPublicNetwork(config->public_network);
+	}
 
 	modem_release(&dev_data);
 	return 0;

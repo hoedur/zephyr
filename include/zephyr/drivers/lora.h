@@ -138,6 +138,12 @@ struct lora_modem_config {
 
 	/** Set to true to disable the 16-bit payload CRC */
 	bool packet_crc_disable;
+
+	/** Set to true to use a custom sync word */
+	bool use_custom_sync_word;
+
+	/** Custom 16-bit sync word to use when use_custom_sync_word is true */
+	uint16_t sync_word;
 };
 
 /**

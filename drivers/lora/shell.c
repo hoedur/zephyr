@@ -140,6 +140,10 @@ static int lora_conf_dump(const struct shell *sh)
 		    (int)modem_config.coding_rate + 4);
 	shell_print(sh, "  Preamble length: %" PRIu16,
 		    modem_config.preamble_len);
+	if (modem_config.use_custom_sync_word) {
+		shell_print(sh, "  Sync word: 0x%04x",
+			    modem_config.sync_word);
+	}
 
 	return 0;
 }
@@ -194,6 +198,13 @@ static int lora_conf_set(const struct shell *sh, const char *param,
 			return -EINVAL;
 		}
 		modem_config.preamble_len = lval;
+	} else if (!strcmp("sync-word", param)) {
+		if (parse_long_range(&lval, sh, value,
+				     "sync-word", 0, UINT16_MAX) < 0) {
+			return -EINVAL;
+		}
+		modem_config.use_custom_sync_word = true;
+		modem_config.sync_word = lval;
 	} else {
 		shell_error(sh, "Unknown parameter '%s'", param);
 		return -EINVAL;

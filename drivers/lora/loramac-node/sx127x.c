@@ -49,6 +49,7 @@ LOG_MODULE_REGISTER(sx127x, CONFIG_LORA_LOG_LEVEL);
 #define SX127xRead SX1272Read
 #define SX127xSetMaxPayloadLength SX1272SetMaxPayloadLength
 #define SX127xSetPublicNetwork SX1272SetPublicNetwork
+#define SX127xSetSyncWord SX1272SetSyncWord
 #define SX127xGetWakeupTime SX1272GetWakeupTime
 #define SX127xSetTxContinuousWave SX1272SetTxContinuousWave
 
@@ -86,6 +87,7 @@ LOG_MODULE_REGISTER(sx127x, CONFIG_LORA_LOG_LEVEL);
 #define SX127xRead SX1276Read
 #define SX127xSetMaxPayloadLength SX1276SetMaxPayloadLength
 #define SX127xSetPublicNetwork SX1276SetPublicNetwork
+#define SX127xSetSyncWord SX1276SetSyncWord
 #define SX127xGetWakeupTime SX1276GetWakeupTime
 #define SX127xSetTxContinuousWave SX1276SetTxContinuousWave
 
@@ -543,6 +545,7 @@ const struct Radio_s Radio = {
 	.ReadBuffer = SX127xReadBuffer,
 	.SetMaxPayloadLength = SX127xSetMaxPayloadLength,
 	.SetPublicNetwork = SX127xSetPublicNetwork,
+	.SetSyncWord = SX127xSetSyncWord,
 	.GetWakeupTime = SX127xGetWakeupTime,
 	.IrqProcess = NULL,
 	.RxBoosted = NULL,
